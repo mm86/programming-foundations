@@ -33,7 +33,7 @@ def calculate_results(player, computer, player_c, computer_c)
     player_c += 1
     computer_c += 1
   end
-  player_points, computer_points, player_c, computer_c
+  return player_points, computer_points, player_c, computer_c
 end
 
 player_count = 0
