@@ -19,17 +19,16 @@ def check_valid_answer
   end
 end
 
+WINNING_COMBOS = {
+  'rock' => %w(scissors lizard),
+  'paper' => %w(rock spock),
+  'scissors' => %w(paper lizard),
+  'spock' => %w(rock scissors),
+  'lizard' => %w(spock paper)
+}
+
 def win?(first, second)
-  (first == 'rock' && second == 'scissors') ||
-    (first == 'paper' && second == 'rock') ||
-    (first == 'scissors' && second == 'paper') ||
-    (first == 'rock' && second == 'lizard') ||
-    (first == 'lizard' && second == 'spock') ||
-    (first == 'spock' && second == 'scissors') ||
-    (first == 'scissors' && second == 'lizard') ||
-    (first == 'lizard' && second == 'paper') ||
-    (first == 'paper' && second == 'spock') ||
-    (first == 'spock' && second == 'rock')
+  WINNING_COMBOS[first].include?(second)
 end
 
 def calculate_results(player, computer, player_points, computer_points)
@@ -48,7 +47,7 @@ player_points = 0
 computer_points = 0
 
 loop do
-  choice = ''
+  player_choice = ''
   loop do
     operator_prompt = <<-MSG
       Choose one from the following?
@@ -60,21 +59,21 @@ loop do
     MSG
 
     prompt(operator_prompt)
-    choice = gets.chomp
+    player_choice = gets.chomp.downcase
 
-    if choice.casecmp('r')
-      choice = 'rock'
-    elsif choice.casecmp('sc')
-      choice = 'scissors'
-    elsif choice.casecmp('l')
-      choice = 'lizard'
-    elsif choice.casecmp('sp')
-      choice = 'spock'
-    elsif choice.casecmp('p')
-      choice = 'paper'
+    if player_choice == 'r'
+      player_choice = 'rock'
+    elsif player_choice == 'sc'
+      player_choice = 'scissors'
+    elsif player_choice == 'l'
+      player_choice = 'lizard'
+    elsif player_choice == 'sp'
+      player_choice = 'spock'
+    elsif player_choice == 'p'
+      player_choice = 'paper'
     end
 
-    if VALID_CHOICES.include?(choice)
+    if VALID_CHOICES.include?(player_choice)
       break
     else
       prompt('That\'s not a valid choice.')
@@ -82,9 +81,12 @@ loop do
   end
 
   computer_choice = VALID_CHOICES.sample
-  prompt("You chose: #{choice}; Computer chose: #{computer_choice}")
+  prompt("You chose: #{player_choice}; Computer chose: #{computer_choice}")
 
-  points = calculate_results(choice, computer_choice, player_points, computer_points)
+  points = calculate_results(player_choice,
+                             computer_choice,
+                             player_points,
+                             computer_points)
   player_points = points[0]
   computer_points = points[1]
   prompt("Your points: #{player_points}; Computer points: #{computer_points}")
