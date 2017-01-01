@@ -62,15 +62,15 @@ loop do
     prompt(operator_prompt)
     choice = gets.chomp
 
-    if choice.downcase == 'r'
+    if choice.casecmp('r')
       choice = 'rock'
-    elsif choice.downcase == 'sc'
+    elsif choice.casecmp('sc')
       choice = 'scissors'
-    elsif choice.downcase == 'l'
+    elsif choice.casecmp('l')
       choice = 'lizard'
-    elsif choice.downcase == 'sp'
+    elsif choice.casecmp('sp')
       choice = 'spock'
-    elsif choice.downcase == 'p'
+    elsif choice.casecmp('p')
       choice = 'paper'
     end
 
