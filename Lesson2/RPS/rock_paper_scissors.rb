@@ -1,5 +1,5 @@
 VALID_CHOICES = %w(rock paper scissors lizard spock)
-PLAY_AGAIN_CHOICES = %w(y n yes no)
+PLAY_AGAIN_VALID_CHOICES = %w(y n yes no)
 PLAY_AGAIN_CHOICES_NO = %w(no n)
 WINNING_SCORE = 5
 
@@ -11,7 +11,7 @@ def check_valid_answer
   loop do
     prompt("Do you want to play again?")
     answer = gets.chomp
-    if PLAY_AGAIN_CHOICES.include?(answer.downcase)
+    if PLAY_AGAIN_VALID_CHOICES.include?(answer.downcase)
       return answer
     else
       prompt("Please enter y/n/yes/no")
@@ -41,7 +41,7 @@ def calculate_results(player, computer, player_points, computer_points)
     player_points += 1
     computer_points += 1
   end
-  return player_points, computer_points
+  [player_points, computer_points]
 end
 
 player_points = 0
@@ -62,15 +62,15 @@ loop do
     prompt(operator_prompt)
     choice = gets.chomp
 
-    if choice == 'R' || choice == 'r'
+    if choice.downcase == 'r'
       choice = 'rock'
-    elsif choice == 'SC' || choice == 'sc'
+    elsif choice.downcase == 'sc'
       choice = 'scissors'
-    elsif choice == 'L' || choice == 'l'
+    elsif choice.downcase == 'l'
       choice = 'lizard'
-    elsif choice == 'SP' || choice == 'sp'
+    elsif choice.downcase == 'sp'
       choice = 'spock'
-    elsif choice == 'P' || choice == 'p'
+    elsif choice.downcase == 'p'
       choice = 'paper'
     end
 
@@ -84,8 +84,9 @@ loop do
   computer_choice = VALID_CHOICES.sample
   prompt("You chose: #{choice}; Computer chose: #{computer_choice}")
 
-  player_points, computer_points = calculate_results(choice, computer_choice, player_points, computer_points)
-
+  points = calculate_results(choice, computer_choice, player_points, computer_points)
+  player_points = points[0]
+  computer_points = points[1]
   prompt("Your points: #{player_points}; Computer points: #{computer_points}")
 
   if (player_points == WINNING_SCORE) && (computer_points == WINNING_SCORE)
@@ -99,7 +100,7 @@ loop do
     player_points = 0
     computer_points = 0
     play_again_response = check_valid_answer
-    break PLAY_AGAIN_CHOICES_NO.include?(play_again_response.downcase)
+    break if PLAY_AGAIN_CHOICES_NO.include?(play_again_response.downcase)
   elsif player_points == WINNING_SCORE
     prompt("Player Wins")
     player_points = 0
