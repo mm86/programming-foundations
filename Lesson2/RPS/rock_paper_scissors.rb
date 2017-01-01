@@ -44,8 +44,8 @@ def calculate_results(player, computer, player_points, computer_points)
   return player_points, computer_points
 end
 
-player_count = 0
-computer_count = 0
+player_points = 0
+computer_points = 0
 
 loop do
   choice = ''
@@ -84,28 +84,26 @@ loop do
   computer_choice = VALID_CHOICES.sample
   prompt("You chose: #{choice}; Computer chose: #{computer_choice}")
 
-  player_points, computer_points = calculate_results(choice, computer_choice, player_count, computer_count)
-  player_count = player_points
-  computer_count = computer_points
+  player_points, computer_points = calculate_results(choice, computer_choice, player_points, computer_points)
 
   prompt("Your points: #{player_points}; Computer points: #{computer_points}")
 
   if (player_points == WINNING_SCORE) && (computer_points == WINNING_SCORE)
     prompt('It\'s a tie')
-    player_count = 0
-    computer_count = 0
+    player_points = 0
+    computer_points = 0
     play_again_response = check_valid_answer
     break if PLAY_AGAIN_CHOICES_NO.include?(play_again_response.downcase)
   elsif computer_points == WINNING_SCORE
     prompt('Computer Wins')
-    player_count = 0
-    computer_count = 0
+    player_points = 0
+    computer_points = 0
     play_again_response = check_valid_answer
     break PLAY_AGAIN_CHOICES_NO.include?(play_again_response.downcase)
   elsif player_points == WINNING_SCORE
     prompt("Player Wins")
-    player_count = 0
-    computer_count = 0
+    player_points = 0
+    computer_points = 0
     play_again_response = check_valid_answer
     break if PLAY_AGAIN_CHOICES_NO.include?(play_again_response.downcase)
   end
