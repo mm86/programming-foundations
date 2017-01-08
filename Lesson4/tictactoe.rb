@@ -9,6 +9,7 @@ INITIAL_MARKER = ' '.freeze
 PLAYER_MARKER = 'X'.freeze
 COMPUTER_MARKER = 'O'.freeze
 WHO_STARTS_FIRST = 'choose'.freeze
+WINNING_SCORE = 5
 
 def prompt(msg)
   puts "=> #{msg}"
@@ -70,7 +71,7 @@ end
 def get_empty_square(brd, line)
   result = -1
   line.each do |data|
-    if brd[data] == " "
+    if brd[data] == INITIAL_MARKER
       result = data
       break
     end
@@ -138,7 +139,7 @@ def detect_winner(brd)
   nil
 end
 
-def check_valid_answer
+def ask_to_play_again
   loop do
     prompt("Do you want to play again?")
     answer = gets.chomp
@@ -151,20 +152,20 @@ def check_valid_answer
 end
 
 def reset_points
-  [0, 0]
+  points[:player] = 0
+  points[:computer] = 0
 end
 
-def update_points(player, computer, brd)
+def update_points(points, brd)
   case detect_winner(brd)
   when 'Player'
-    player += 1
+    points[:player] += 1
   when 'Computer'
-    computer += 1
+    points[:computer] += 1
   else
-    player += 1
-    computer += 1
+    points[:player] += 1
+    points[:computer] += 1
   end
-  [player, computer]
 end
 
 def place_piece!(brd, current_player)
@@ -182,10 +183,10 @@ end
 def who_plays_first?
   prompt "Who should start first? Enter computer or player"
   player_first = gets.chomp
-  player_first == 'player' ? 'computer' : 'player'
+  player_first == 'player' ? 'player' : 'computer'
 end
 
-def want_to_win_the_game?
+def display_win_condition?
   loop do
     prompt "To win the game, you must get 5 points."
     prompt "To continue playing the game, press enter"
@@ -198,18 +199,17 @@ def want_to_win_the_game?
   end
 end
 
-def display_winner(player, computer)
-  if computer == 5 && player == 5
+def display_winner(points)
+  if points[:computer] == WINNING_SCORE && points[:player] == WINNING_SCORE
     prompt "It's a tie between player and the computer"
-  elsif computer == 5
+  elsif points[:computer] == WINNING_SCORE
     prompt "Computer won the game"
-  elsif player == 5
+  elsif points[:player] == WINNING_SCORE
     prompt "player won the game"
   end
 end
 
-player_points = 0
-computer_points = 0
+points = { player: 0, computer: 0 }
 
 current_player = who_plays_first?
 
@@ -227,30 +227,26 @@ loop do
 
   if someone_won?(board)
     prompt "#{detect_winner(board)} won!"
-    player_points, computer_points = update_points(player_points,
-                                                   computer_points,
-                                                   board)
   else
     prompt "It's a tie"
-    player_points, computer_points = update_points(player_points,
-                                                   computer_points,
-                                                   board)
   end
 
-  if player_points == 5 || computer_points == 5
-    display_winner(player_points, computer_points)
-    play_again_response = check_valid_answer
+  update_points(points, board)
+
+  if points[:player] == WINNING_SCORE || points[:computer] == WINNING_SCORE
+    display_winner(points)
+    play_again_response = ask_to_play_again
     if play_again_response.start_with?('y')
-      player_points, computer_points = reset_points
+      reset_points(points)
     end
     break if PLAY_AGAIN_CHOICES_NO.include?(play_again_response.downcase)
     current_player = who_plays_first?
   end
 
-  prompt "Player score is: #{player_points}."
-  prompt "Computer score is: #{computer_points}."
+  prompt "Player score is: #{points[:player]}."
+  prompt "Computer score is: #{points[:computer]}."
 
-  want_to_win_the_game?
+  display_win_condition?
 end
 
 prompt "Thanks for playing the game tic tac toe"
