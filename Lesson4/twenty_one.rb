@@ -29,7 +29,7 @@ def calculate_total(cards)
     elsif value =~ /['JQK']/
       total += 10
     elsif value =~ /['A']/
-      total + 11 > BUSTED_SCORE ? total += 11 : total += 1
+      total + 11 > BUSTED_SCORE ? total += 1 : total += 11
     end
   end
   total
