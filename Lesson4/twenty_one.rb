@@ -29,7 +29,7 @@ def calculate_total(cards)
     elsif value =~ /['JQK']/
       total += 10
     elsif value =~ /['A']/
-      total + 11 < BUSTED_SCORE ? total += 11 : total += 1
+      total + 11 > BUSTED_SCORE ? total += 11 : total += 1
     end
   end
   total
@@ -52,7 +52,6 @@ def display_winner(player, dealer)
     prompt "Player loses with #{player}"
     prompt "Player total is #{calculate_total(player)}"
   end
-  prompt "==============="
 end
 
 # main game starts here
@@ -106,7 +105,6 @@ loop do
 
   if busted?(dealer)
     prompt "Dealer busted. Player wins"
-    break unless play_again?
   else
     prompt "Dealer stays at #{calculate_total(dealer)}"
     display_winner(player, dealer)
