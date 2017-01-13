@@ -83,8 +83,7 @@ loop do
 
   if busted?(player)
     prompt "Player busted. Dealer wins."
-    display_winner(player, dealer)
-    break
+    break unless play_again?
   else
     prompt "Player chose to stay!"
   end
