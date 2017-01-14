@@ -1,5 +1,8 @@
 
 BUSTED_SCORE = 21
+DEALER_SCORE_LIMIT = 17
+WINNING_SCORE = 5
+SPACER = "==============================".freeze
 
 SUITS = ['H', 'D', 'S', 'C'].freeze
 VALUES = ['2', '3', '4', '5', '6', '7', '8'] +
@@ -9,15 +12,28 @@ def prompt(msg)
   puts "=> #{msg}"
 end
 
-def play_again?
-  puts "====================================="
+def reset_points(points)
+  points[:player_points] = 0
+  points[:dealer_points] = 0
+end
+
+def play_again?(points)
+  prompt SPACER
   prompt "Do you want to play again? (y or n)"
   answer = gets.chomp
-  answer.downcase.start_with?('y')
+  prompt SPACER
+
+  user_response = answer.downcase.start_with?('y')
+  reset_points(points) if user_response == true
+  user_response
 end
 
 def initialize_deck
   SUITS.product(VALUES).shuffle
+end
+
+def calculate_ace_value(total)
+  total + 11 > BUSTED_SCORE ? 1 : 11
 end
 
 def calculate_total(cards)
@@ -29,7 +45,7 @@ def calculate_total(cards)
     elsif value =~ /['JQK']/
       total += 10
     elsif value =~ /['A']/
-      total + 11 > BUSTED_SCORE ? total += 1 : total += 11
+      total += calculate_ace_value(total)
     end
   end
   total
@@ -39,77 +55,143 @@ def busted?(cards)
   calculate_total(cards) > BUSTED_SCORE
 end
 
-def display_winner(player, dealer)
-  prompt "==============="
-  if calculate_total(player) > calculate_total(dealer)
-    prompt "Player won with #{player}"
-    prompt "Player total is #{calculate_total(player)}"
-    prompt "Dealer loses with #{dealer}"
-    prompt "Dealer total is #{calculate_total(dealer)}"
+def compute_result(player, dealer)
+  player_total = calculate_total(player)
+  dealer_total = calculate_total(dealer)
+
+  if player_total > 21
+    [:player_busted, :player]
+  elsif dealer_total > 21
+    [:dealer_busted, :dealer]
+  elsif dealer_total < player_total
+    [:player_won, :player]
+  elsif dealer_total > player_total
+    [:dealer_won, :dealer]
   else
-    prompt "Dealer won with #{dealer}"
-    prompt "Dealer total is #{calculate_total(dealer)}"
-    prompt "Player loses with #{player}"
-    prompt "Player total is #{calculate_total(player)}"
+    [:tie, :both]
   end
 end
 
-# main game starts here
+def display_final_cards_total(player, dealer)
+  prompt "Player cards: #{player}"
+  prompt "Player total: #{calculate_total(player)}"
+  prompt "Dealer cards: #{dealer}"
+  prompt "Dealer total: #{calculate_total(dealer)}"
+  prompt SPACER
+end
+
+def display_result(dealer_cards, player_cards, points)
+  prompt "===========RESULT============"
+  result = compute_result(dealer_cards, player_cards)
+  case result[0]
+  when :player_busted
+    prompt "Player busted! Dealer wins!"
+  when :dealer_busted
+    prompt "Dealer busted! You win!"
+  when :player_won
+    prompt "You win! Dealer loses"
+  when :dealer_won
+    prompt "Dealer wins! You lose"
+  when :tie
+    prompt "It's a tie!"
+  end
+  update_points(points, result[1])
+  display_final_cards_total(player_cards, dealer_cards)
+  prompt "============================="
+end
+
+def update_points(points, person)
+  if person == :player
+    points[:player_points] += 1
+  elsif person == :dealer
+    points[:dealer_points] += 1
+  else
+    points[:player_points] += 1
+    points[:dealer_points] += 1
+  end
+end
+
+def welcome_message
+  prompt SPACER
+  prompt "Welcome to Twenty-One Game"
+  prompt "To win this game, one of you must score 5 points."
+  prompt SPACER
+end
+
+def display_winner(points)
+  if points.values.all? { |value| value == 5 }
+    prompt "GAME WINNER: It's a tie between player and dealer."
+  elsif points[:player_points] == WINNING_SCORE
+    prompt "GAME WINNER: Player won with 5 points"
+  elsif points[:dealer_points] == WINNING_SCORE
+    prompt "GAME WINNER: Dealer won with 5 points"
+  end
+end
+
+points = { player_points: 0, dealer_points: 0 }
+
+welcome_message
+
 loop do
-  prompt "Welcome to Twenty-One"
-  player = []
-  dealer = []
-
   deck = initialize_deck
-  player << deck.pop << deck.pop
-  dealer << deck.pop << deck.pop
 
-  prompt "Dealer's cards are #{dealer[0]} and ?"
-  prompt "Player's cards are #{player[0]} and #{player[1]}"
-  prompt "Player total is #{calculate_total(player)}"
+  player_cards = []
+  dealer_cards = []
+
+  player_cards << deck.pop << deck.pop
+  dealer_cards << deck.pop << deck.pop
+
+  prompt "Dealer Cards: #{dealer_cards[0]} and ?"
+  prompt "Player Cards: #{player_cards[0]} and #{player_cards[1]}"
+  prompt "Player Total: #{calculate_total(player_cards)}"
+  prompt "============SCORE============="
+  prompt "Player: #{points[:player_points]}"
+  prompt "Dealer: #{points[:dealer_points]}"
+  prompt SPACER
 
   answer = nil
   loop do
     puts "Player: Hit(h) or Stay(s)?"
     answer = gets.chomp.downcase
     if answer == 'h'
-      player << deck.pop
-      prompt "Player cards are #{player}"
-      prompt "Player total score is #{calculate_total(player)}"
+      player_cards << deck.pop
+      prompt "Player Cards: #{player_cards}"
+      prompt "Player Total: #{calculate_total(player_cards)}"
     end
-    # break if any one of them is true
-    break if answer == 's' || busted?(player)
+    break if answer == 's' || busted?(player_cards)
   end
 
-  if busted?(player)
-    prompt "Player busted. Dealer wins."
-    break unless play_again?
+  if busted?(player_cards)
+    display_result(player_cards, dealer_cards, points)
+    next if points.values.any? { |value| value == 5 }
   else
     prompt "Player chose to stay!"
   end
 
-  # dealer turn
-
-  prompt "Dealer turn"
-  prompt "Dealer's cards are #{dealer}"
-  prompt "Dealer total is #{calculate_total(dealer)}"
+  dealer_total = calculate_total(dealer_cards)
+  prompt "Dealer turn...."
+  prompt "Dealer Cards: #{dealer_cards}"
+  prompt "Dealer Total: #{dealer_total}"
 
   loop do
-    break if busted?(dealer) || calculate_total(dealer) >= 17
+    break if busted?(dealer_cards) || dealer_total >= DEALER_SCORE_LIMIT
     prompt "Dealer hits"
-    dealer << deck.pop
-    prompt "Dealer's cards are #{dealer}"
-    prompt "Dealer total is #{calculate_total(dealer)}"
+    dealer_cards << deck.pop
+    dealer_total = calculate_total(dealer_cards)
+    prompt "Dealer Cards: #{dealer_cards}"
+    prompt "Dealer Total:  #{dealer_total}"
   end
 
-  if busted?(dealer)
-    prompt "Dealer busted. Player wins"
-  else
-    prompt "Dealer stays at #{calculate_total(dealer)}"
-    display_winner(player, dealer)
+  if !busted?(dealer_cards)
+    prompt "Dealer stays at #{dealer_total}"
   end
 
-  break unless play_again?
+  display_result(player_cards, dealer_cards, points)
+
+  if points.values.any? { |value| value == 5 }
+    display_winner(points)
+    break unless play_again?(points)
+  end
 end
 
 prompt "Thanks for playing 21 game"
